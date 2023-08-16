@@ -292,12 +292,5 @@ router.get("/get-appointments-by-user-id", authMiddleware, async (req, res) => {
   }
 
 });
-router.post("/getuser", authMiddleware, async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id).select("-password");
-    return res.send(user);
-  } catch (error) {
-    res.status(500).send("Unable to get user");
-  }
-});
+
 module.exports = router;

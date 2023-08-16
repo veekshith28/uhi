@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import Layout from "../../components/Layout";
 import { showLoading, hideLoading } from "../../redux/alertsSlice";
 import axios from "axios";
-import { Table } from "antd";
+import { Table, Button } from "antd";
 import moment from "moment";
 
 function Userslist() {
@@ -30,6 +30,26 @@ function Userslist() {
   useEffect(() => {
     getUsersData();
   }, []);
+  const handleRemoveUserByEmail = async (email) => {
+    try {
+      await axios.post(
+        "/api/admin/remove-user-by-email",
+        {
+          email: email,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      // Remove the deleted user from the local state
+      setUsers((prevUsers) => prevUsers.filter((user) => user.email !== email));
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   const columns = [
     {
@@ -61,10 +81,8 @@ function Userslist() {
     {
       title: "Actions",
       dataIndex: "actions",
-      render: (text, record) => (
-        <div className="d-flex">
-          <h1 className="anchor">Block</h1>
-        </div>
+      render: (_, user) => (
+        <Button onClick={() => handleRemoveUserByEmail(user.email)}>Block</Button>
       ),
     },
   ];

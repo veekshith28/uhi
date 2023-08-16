@@ -75,7 +75,27 @@ router.post(
     }
   }
 );
-  
+router.post("/remove-user-by-email", authMiddleware, async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Missing required parameters." });
+    }
+
+    // Find and remove the user by email
+    const user = await User.findOneAndRemove({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    return res.status(200).json({ message: "User account removed successfully." });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "An error occurred while processing the request." });
+  }
+});  
 // Route to create a doctor accou
 
 router.post("/add-doctor", authMiddleware, async (req, res) => {
@@ -97,7 +117,7 @@ router.post("/add-doctor", authMiddleware, async (req, res) => {
     const newUser = new User({
       email,
       password: hashedPassword,
-      isDoctor: true,
+      isDoctor: false,
       isAdmin: false,
       ...doctorData,
     });

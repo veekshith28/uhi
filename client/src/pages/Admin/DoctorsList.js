@@ -4,7 +4,7 @@ import Layout from "../../components/Layout";
 import { showLoading, hideLoading } from "../../redux/alertsSlice";
 import {toast} from 'react-hot-toast'
 import axios from "axios";
-import { Table } from "antd";
+import { Table, Button} from "antd";
 import moment from "moment";
 
 function DoctorsList() {
@@ -26,7 +26,9 @@ function DoctorsList() {
       dispatch(hideLoading());
     }
   };
-
+  const removeDoctorFromList = (doctorId) => {
+    setDoctors((prevDoctors) => prevDoctors.filter((doctor) => doctor._id !== doctorId));
+  };
   const changeDoctorStatus = async (record, status) => {
     try {
       dispatch(showLoading());
@@ -81,20 +83,23 @@ function DoctorsList() {
       render: (text, record) => (
         <div className="d-flex">
           {record.status === "pending" && (
-            <h1
-              className="anchor"
-              onClick={() => changeDoctorStatus(record, "approved")}
-            >
+            <>
+            <Button onClick={() => changeDoctorStatus(record, "approved")}>
               Approve
-            </h1>
+            </Button>
+            <Button onClick={() => changeDoctorStatus(record, "rejected")}>
+              Reject
+            </Button>
+          </>
           )}
           {record.status === "approved" && (
-            <h1
-              className="anchor"
+            <>
+            <Button
+              
               onClick={() => changeDoctorStatus(record, "blocked")}
             >
               Block
-            </h1>
+            </Button></>
           )}
         </div>
       ),
