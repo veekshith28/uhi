@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../models/userModel");
 const Doctor = require("../models/doctorModel");
 const authMiddleware = require("../middlewares/authMiddleware");
-
+const bcrypt = require('bcrypt');
 router.get("/get-all-doctors", authMiddleware, async (req, res) => {
   try {
     const doctors = await Doctor.find({});
@@ -77,29 +77,37 @@ router.post(
 );
   
 // Route to create a doctor accou
+
 router.post("/add-doctor", authMiddleware, async (req, res) => {
   try {
-    const newDoctor = new Doctor({ ...req.body });
-    await newDoctor.save();
+    const { email, password, ...doctorData } = req.body;
 
-    // Update the admin user to have isDoctor: true
-    const adminUser = await User.findOne({ isAdmin: true });
-    adminUser.isDoctor = true;
-    await adminUser.save();
+    // Check if the user with the given email already exists
+    const userExists = await User.findOne({ email });
 
-    res.status(200).send({
-      success: true,
-      message: "Doctor account created successfully",
+    if (userExists) {
+      return res.status(400).json({ message: "User already exists" });
+    }
+
+    // Hash the password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+    // Create a new user account with hashed password and isDoctor: true
+    const newUser = new User({
+      email,
+      password: hashedPassword,
+      isDoctor: true,
+      isAdmin: false,
+      ...doctorData,
     });
+    await newUser.save();
+
+    res.status(201).json({ message: "Doctor account created successfully" });
   } catch (error) {
-    console.log(error);
-    res.status(500).send({
-      message: "Error creating doctor account",
-      success: false,
-      error,
-    });
+    console.error("Error creating doctor account:", error);
+    res.status(500).json({ message: "Error creating doctor account" });
   }
 });
-
 
 module.exports = router;
